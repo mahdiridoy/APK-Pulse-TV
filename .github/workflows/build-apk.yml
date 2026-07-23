@@ -2,68 +2,51 @@ name: Build APK
 
 on:
   push:
-    branches: [ "main" ]
-  workflow_dispatch: {}
-
-permissions:
-  contents: write
+    branches: [ "main", "master" ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Unzip project (if uploaded as a zip)
-        run: |
-          echo "Repo root contents:"
-          ls -la
-          ZIPFILE=$(find . -maxdepth 1 -iname "*.zip" | head -n 1)
-          if [ -n "$ZIPFILE" ]; then
-            echo "Found zip: $ZIPFILE"
-            unzip -o "$ZIPFILE"
-          else
-            echo "No zip file found in repo root."
-          fi
-          echo "After unzip:"
-          ls -la
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
 
-      - name: Set up JDK 17
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Web Application
+        run: npm run build
+
+      - name: Setup Java JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
+          distribution: 'zulu'
           java-version: '17'
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-
-      - name: Build debug APK
+      - name: Setup Capacitor Android Platform
         run: |
-          PROJECT_DIR=$(dirname "$(find . -maxdepth 3 -iname "settings.gradle.kts" | head -n 1)")
-          echo "Building in: $PROJECT_DIR"
-          cd "$PROJECT_DIR"
-          gradle assembleDebug --no-daemon
+          npx cap init "ApkPulse Stream" "com.apkpulse.stream" --web-dir "dist" || true
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
+          npx cap sync android
 
-      - name: Locate built APK
-        id: findapk
+      - name: Build Android Debug APK
         run: |
-          APK_PATH=$(find . -iname "app-debug.apk" | head -n 1)
-          echo "Found APK at: $APK_PATH"
-          echo "path=$APK_PATH" >> "$GITHUB_OUTPUT"
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --stacktrace
 
-      - name: Upload APK artifact
+      - name: Upload Debug APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: iptv-app-debug-apk
-          path: ${{ steps.findapk.outputs.path }}
-
-      - name: Create GitHub Release
-        if: github.ref == 'refs/heads/main'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: build-${{ github.run_number }}
-          name: IPTV App build ${{ github.run_number }}
-          files: ${{ steps.findapk.outputs.path }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: ApkPulse-Stream-Debug-APK
+          path: android/app/build/outputs/apk/debug/apkpulse.apk
