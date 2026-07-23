@@ -5,33 +5,65 @@ on:
     branches: [ "main" ]
   workflow_dispatch: {}
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Unzip project
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Unzip project (if uploaded as a zip)
         run: |
-          if [ -f ridoy-iptv-app.zip ]; then
-            unzip -o ridoy-iptv-app.zip
+          echo "Repo root contents:"
+          ls -la
+          ZIPFILE=$(find . -maxdepth 1 -iname "*.zip" | head -n 1)
+          if [ -n "$ZIPFILE" ]; then
+            echo "Found zip: $ZIPFILE"
+            unzip -o "$ZIPFILE"
+          else
+            echo "No zip file found in repo root."
           fi
-      - uses: actions/setup-java@v4
+          echo "After unzip:"
+          ls -la
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-      - uses: gradle/actions/setup-gradle@v3
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
       - name: Build debug APK
-        working-directory: iptvapp
-        run: gradle assembleDebug --no-daemon
-      - uses: actions/upload-artifact@v4
+        run: |
+          PROJECT_DIR=$(dirname "$(find . -maxdepth 3 -iname "settings.gradle.kts" | head -n 1)")
+          echo "Building in: $PROJECT_DIR"
+          cd "$PROJECT_DIR"
+          gradle assembleDebug --no-daemon
+
+      - name: Locate built APK
+        id: findapk
+        run: |
+          APK_PATH=$(find . -iname "app-debug.apk" | head -n 1)
+          echo "Found APK at: $APK_PATH"
+          echo "path=$APK_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
         with:
           name: iptv-app-debug-apk
-          path: iptvapp/app/build/outputs/apk/debug/app-debug.apk
+          path: ${{ steps.findapk.outputs.path }}
+
       - name: Create GitHub Release
         if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
-          files: iptvapp/app/build/outputs/apk/debug/app-debug.apk
+          name: IPTV App build ${{ github.run_number }}
+          files: ${{ steps.findapk.outputs.path }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
