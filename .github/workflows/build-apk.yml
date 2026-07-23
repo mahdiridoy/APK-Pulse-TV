@@ -30,6 +30,15 @@ jobs:
           ls -la
           echo "==========================="
 
+          # If package.json isn't present, check for zip archives and unzip them
+          if [ ! -f "package.json" ]; then
+            ZIP_FILE=$(find . -maxdepth 2 -name "*.zip" | head -n 1)
+            if [ -n "$ZIP_FILE" ]; then
+              echo "Found zip file: $ZIP_FILE. Unzipping project files..."
+              unzip -o "$ZIP_FILE"
+            fi
+          fi
+
           # Locate directory containing package.json anywhere in repository
           PKG_PATH=$(find . -name "package.json" -not -path "*/node_modules/*" | head -n 1)
 
