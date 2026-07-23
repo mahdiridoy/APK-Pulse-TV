@@ -26,55 +26,67 @@ jobs:
 
       - name: Find Project Root & Build APK
         run: |
-          echo "=== Repository Structure ==="
+          echo "=== Repository Structure Before Extraction ==="
           ls -la
-          echo "==========================="
+          echo "============================================="
 
-          # If package.json isn't present, check for zip archives and unzip them
-          if [ ! -f "package.json" ]; then
-            ZIP_FILE=$(find . -maxdepth 2 -name "*.zip" | head -n 1)
-            if [ -n "$ZIP_FILE" ]; then
-              echo "Found zip file: $ZIP_FILE. Unzipping project files..."
-              unzip -o "$ZIP_FILE"
-            fi
-          fi
+          # Unzip all .zip files if present in the repository
+          for z in $(find . -maxdepth 3 -name "*.zip"); do
+            echo "Unzipping archive: $z"
+            unzip -o "$z"
+          done
 
-          # Locate directory containing package.json anywhere in repository
+          # 1. Search for package.json (Web/Capacitor Project)
           PKG_PATH=$(find . -name "package.json" -not -path "*/node_modules/*" | head -n 1)
 
-          if [ -z "$PKG_PATH" ]; then
-            echo "Error: package.json not found in repository!"
-            echo "Directory contents tree:"
-            find . -maxdepth 4 -not -path '*/.*' -not -path '*/node_modules*'
-            exit 1
+          if [ -n "$PKG_PATH" ]; then
+            PROJECT_DIR=$(dirname "$PKG_PATH")
+            echo "Found Node web project at: $PROJECT_DIR"
+            cd "$PROJECT_DIR"
+
+            npm install
+            npm run build
+
+            npx cap init "ApkPulse Stream" "com.apkpulse.stream" --web-dir "dist" || true
+            if [ ! -d "android" ]; then
+              npx cap add android
+            fi
+            npx cap sync android
+
+            cd android
+            if [ -f "gradlew" ]; then
+              chmod +x gradlew
+              ./gradlew assembleDebug --stacktrace
+            else
+              gradle assembleDebug --stacktrace
+            fi
+            exit 0
           fi
 
-          PROJECT_DIR=$(dirname "$PKG_PATH")
-          echo "Found package.json at: $PKG_PATH"
-          echo "Switching to project directory: $PROJECT_DIR"
-          cd "$PROJECT_DIR"
+          # 2. If no package.json, search for Native Android Gradle project
+          GRADLE_FILE=$(find . \( -name "settings.gradle.kts" -o -name "settings.gradle" -o -name "build.gradle.kts" -o -name "build.gradle" \) -not -path "*/.gradle/*" -not -path "*/build/*" | head -n 1)
 
-          # 1. Install dependencies
-          npm install
+          if [ -n "$GRADLE_FILE" ]; then
+            GRADLE_DIR=$(dirname "$GRADLE_FILE")
+            echo "Found Native Android Gradle project at: $GRADLE_DIR"
+            cd "$GRADLE_DIR"
 
-          # 2. Build web application
-          npm run build
-
-          # 3. Setup Capacitor Android platform
-          npx cap init "ApkPulse Stream" "com.apkpulse.stream" --web-dir "dist" || true
-          if [ ! -d "android" ]; then
-            npx cap add android
+            if [ -f "gradlew" ]; then
+              chmod +x gradlew
+              ./gradlew assembleDebug --stacktrace
+            else
+              echo "gradlew wrapper not found, building with system gradle..."
+              gradle assembleDebug --stacktrace
+            fi
+            exit 0
           fi
-          npx cap sync android
 
-          # 4. Build Android Debug APK
-          cd android
-          chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace
+          echo "Error: Neither package.json nor Gradle build files were found in repository!"
+          exit 1
 
       - name: Upload Debug APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ApkPulse-Stream-Debug-APK
-          path: "**/android/app/build/outputs/apk/debug/app-debug.apk"
+          path: "**/*.apk"
 
