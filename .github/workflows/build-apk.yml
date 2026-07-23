@@ -18,28 +18,38 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Build Web Application
-        run: npm run build
-
       - name: Setup Java JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Setup Capacitor Android Platform
+      - name: Find Project Root & Build APK
         run: |
+          # Locate directory containing package.json
+          PKG_PATH=$(find . -maxdepth 3 -name "package.json" -not -path "*/node_modules/*" | head -n 1)
+          if [ -z "$PKG_PATH" ]; then
+            echo "Error: package.json not found in repository!"
+            exit 1
+          fi
+          PROJECT_DIR=$(dirname "$PKG_PATH")
+          echo "Found project directory at: $PROJECT_DIR"
+          cd "$PROJECT_DIR"
+
+          # 1. Install dependencies
+          npm install
+
+          # 2. Build web application
+          npm run build
+
+          # 3. Setup Capacitor Android platform
           npx cap init "ApkPulse Stream" "com.apkpulse.stream" --web-dir "dist" || true
           if [ ! -d "android" ]; then
             npx cap add android
           fi
           npx cap sync android
 
-      - name: Build Android Debug APK
-        run: |
+          # 4. Build Android Debug APK
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug --stacktrace
@@ -48,4 +58,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ApkPulse-Stream-Debug-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: "**/android/app/build/outputs/apk/debug/ApkPulseStream.apk"
+
