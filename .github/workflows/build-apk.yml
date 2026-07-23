@@ -26,14 +26,23 @@ jobs:
 
       - name: Find Project Root & Build APK
         run: |
-          # Locate directory containing package.json
-          PKG_PATH=$(find . -maxdepth 3 -name "package.json" -not -path "*/node_modules/*" | head -n 1)
+          echo "=== Repository Structure ==="
+          ls -la
+          echo "==========================="
+
+          # Locate directory containing package.json anywhere in repository
+          PKG_PATH=$(find . -name "package.json" -not -path "*/node_modules/*" | head -n 1)
+
           if [ -z "$PKG_PATH" ]; then
             echo "Error: package.json not found in repository!"
+            echo "Directory contents tree:"
+            find . -maxdepth 4 -not -path '*/.*' -not -path '*/node_modules*'
             exit 1
           fi
+
           PROJECT_DIR=$(dirname "$PKG_PATH")
-          echo "Found project directory at: $PROJECT_DIR"
+          echo "Found package.json at: $PKG_PATH"
+          echo "Switching to project directory: $PROJECT_DIR"
           cd "$PROJECT_DIR"
 
           # 1. Install dependencies
@@ -58,5 +67,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ApkPulse-Stream-Debug-APK
-          path: "**/android/app/build/outputs/apk/debug/ApkPulseStream.apk"
+          path: "**/android/app/build/outputs/apk/debug/app-debug.apk"
 
