@@ -1,58 +1,46 @@
 name: Build APK
-
 on:
   push:
     branches: [ "main", "master" ]
   workflow_dispatch:
-
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-
       - name: Setup Java JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '21'
-
       - name: Find Project Root & Build APK
         run: |
           echo "=== Repository Structure Before Extraction ==="
           ls -la
           echo "============================================="
-
           # Unzip all .zip files if present in the repository
           for z in $(find . -maxdepth 3 -name "*.zip"); do
             echo "Unzipping archive: $z"
             unzip -o "$z"
           done
-
           # 1. Search for package.json (Web/Capacitor Project)
           PKG_PATH=$(find . -name "package.json" -not -path "*/node_modules/*" | head -n 1)
-
           if [ -n "$PKG_PATH" ]; then
             PROJECT_DIR=$(dirname "$PKG_PATH")
             echo "Found Node web project at: $PROJECT_DIR"
             cd "$PROJECT_DIR"
-
             npm install
             npm run build
-
             npx cap init "ApkPulse Stream" "com.apkpulse.stream" --web-dir "dist" || true
             if [ ! -d "android" ]; then
               npx cap add android
             fi
             npx cap sync android
-
             cd android
             if [ -f "gradlew" ]; then
               chmod +x gradlew
@@ -62,15 +50,18 @@ jobs:
             fi
             exit 0
           fi
-
-          # 2. If no package.json, search for Native Android Gradle project
-          GRADLE_FILE=$(find . \( -name "settings.gradle.kts" -o -name "settings.gradle" -o -name "build.gradle.kts" -o -name "build.gradle" \) -not -path "*/.gradle/*" -not -path "*/build/*" | head -n 1)
-
+          # 2. If no package.json, search for Native Android Gradle project.
+          # Prefer settings.gradle(.kts) first - only a true project root has one,
+          # submodules (like :library) only have build.gradle(.kts), which was
+          # previously matching first and pointing the build at the wrong module.
+          GRADLE_FILE=$(find . \( -name "settings.gradle.kts" -o -name "settings.gradle" \) -not -path "*/.gradle/*" -not -path "*/build/*" | head -n 1)
+          if [ -z "$GRADLE_FILE" ]; then
+            GRADLE_FILE=$(find . \( -name "build.gradle.kts" -o -name "build.gradle" \) -not -path "*/.gradle/*" -not -path "*/build/*" | head -n 1)
+          fi
           if [ -n "$GRADLE_FILE" ]; then
             GRADLE_DIR=$(dirname "$GRADLE_FILE")
             echo "Found Native Android Gradle project at: $GRADLE_DIR"
             cd "$GRADLE_DIR"
-
             if [ -f "gradlew" ]; then
               chmod +x gradlew
               ./gradlew assembleDebug --stacktrace
@@ -80,13 +71,10 @@ jobs:
             fi
             exit 0
           fi
-
           echo "Error: Neither package.json nor Gradle build files were found in repository!"
           exit 1
-
       - name: Upload Debug APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ApkPulse-Stream-Debug-APK
           path: "**/*.apk"
-
