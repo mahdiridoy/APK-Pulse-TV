@@ -1,0 +1,23 @@
+name = "watch-together-server"
+main = "cloudflare-index-watch-together-v2.js"
+compatibility_date = "2024-01-01"
+
+# Durable Object binding — required for room state
+[durable_objects]
+bindings = [
+  { name = "WATCH_ROOM", class_name = "WatchRoom" }
+]
+
+# SQLite-backed Durable Object (required for free plan)
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["WatchRoom"]
+
+# KV namespace for user tracking
+[[kv_namespaces]]
+binding = "USERS_KV"
+id = "ee27b971abdb41548ec2a318ba5c0e23"
+
+# NOTE: Using GitHub Releases for APK hosting instead of R2
+# Update check endpoint: /update/check?v=1.0.0.14
+# Fetches latest release from GitHub API automatically
