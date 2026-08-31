@@ -36,8 +36,8 @@ jobs:
           VERSION=$(grep 'versionName' gradle/libs.versions.toml | cut -d'"' -f2)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           
-      - name: Create GitHub Release (only on tag push)
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Create GitHub Release (on push to main or tag)
+        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ steps.version.outputs.version }}
@@ -47,3 +47,4 @@ jobs:
             - Built from commit ${{ github.sha }}
           files: |
             app/build/outputs/apk/release/pulsestreamV${{ steps.version.outputs.version }}.apk
+          make_latest: true
