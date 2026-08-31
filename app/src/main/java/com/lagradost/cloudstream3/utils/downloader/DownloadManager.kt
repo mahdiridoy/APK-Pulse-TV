@@ -1807,7 +1807,7 @@ object VideoDownloadManager {
 
     @OptIn(UnstableApi::class)
     private fun resolveSegmentUri(uri: RangedUri, baseUrl: String): Pair<String, LongRange?> {
-        val range = if (uri.length != C.LENGTH_UNSET.toLong()) {
+        val range = if (uri.length != C.LENGTH_UNSET) {
             uri.start until (uri.start + uri.length)
         } else {
             null
@@ -1833,10 +1833,11 @@ object VideoDownloadManager {
         val index = representation.getIndex()
         if (index != null) {
             val count = index.getSegmentCount(periodDurationUs)
-            if (count == DashSegmentIndex.INDEX_UNBOUNDED.toLong() || count <= 0) return null
+            // In Media3, INDEX_UNBOUNDED is -1L, so check for negative count
+            if (count < 0 || count <= 0) return null
             val first = index.getFirstSegmentNum()
-            for (i in 0 until count) {
-                segments += resolveSegmentUri(index.getSegmentUrl(first + i), baseUrl)
+            for (i in 0 until count.toInt()) {
+                segments += resolveSegmentUri(index.getSegmentUrl(first + i.toLong()), baseUrl)
             }
         } else {
             val single = representation.getIndexUri() ?: return null
@@ -1899,7 +1900,7 @@ object VideoDownloadManager {
             val work = tracks.toMutableList()
             while (work.isNotEmpty()) {
                 val next = work.minByOrNull { it.sampleTime } ?: break
-                val size = next.extractor.sampleSize
+                val size: Long = next.extractor.sampleSize
                 if (size <= 0) {
                     work.remove(next)
                     continue
