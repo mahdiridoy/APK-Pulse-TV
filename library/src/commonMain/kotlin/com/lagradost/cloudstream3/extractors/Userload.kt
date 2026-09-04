@@ -35,18 +35,18 @@ open class Userload : ExtractorApi() {
 
     private suspend fun decodeVideoJs(text: String): List<String> {
         text.replace("""\s+|/\*.*?\*/""".toRegex(), "")
-        val data = text.split("""+(ﾟДﾟ)[ﾟoﾟ]""")[1]
-        val chars = data.split("""+ (ﾟДﾟ)[ﾟεﾟ]+""").drop(1)
+        val data = text.split("""+(???)[?o?]""")[1]
+        val chars = data.split("""+ (???)[?e?]+""").drop(1)
         val newchars = chars.map { char ->
-            char.replace("(oﾟｰﾟo)", "u")
+            char.replace("(o???o)", "u")
                 .replace("c", "0")
-                .replace("(ﾟДﾟ)['0']", "c")
-                .replace("ﾟΘﾟ", "1")
+                .replace("(???)['0']", "c")
+                .replace("?T?", "1")
                 .replace("!+[]", "1")
                 .replace("-~", "1+")
                 .replace("o", "3")
                 .replace("_", "3")
-                .replace("ﾟｰﾟ", "4")
+                .replace("???", "4")
                 .replace("(+", "(")
         }
 

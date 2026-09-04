@@ -1,4 +1,4 @@
-// ! Bu araç @keyiflerolsun tarafından | @KekikAkademi için yazılmıştır.
+// ! Bu ara� @keyiflerolsun tarafindan | @KekikAkademi i�in yazilmistir.
 
 package com.lagradost.cloudstream3.extractors
 
@@ -24,7 +24,7 @@ open class VidMoxy : ExtractorApi() {
 
             subtitleCallback.invoke(
                 newSubtitleFile(
-                    lang = subLang.replace("\\u0131", "ı").replace("\\u0130", "İ").replace("\\u00fc", "ü").replace("\\u00e7", "ç"),
+                    lang = subLang.replace("\\u0131", "i").replace("\\u0130", "I").replace("\\u00fc", "�").replace("\\u00e7", "�"),
                     url  = fixUrl(subUrl.replace("\\", ""))
                 )
             )

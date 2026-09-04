@@ -969,10 +969,10 @@ class Score private constructor(
         decimalChar: Char = '.'
     ): String {
         require(maxScore in 1..1000) {
-            "maxScore ∈ [1,1000]"
+            "maxScore ? [1,1000]"
         }
         require(decimals in 0..MAX_ZEROS) {
-            "decimals ∈ [0,$MAX_ZEROS]"
+            "decimals ? [0,$MAX_ZEROS]"
         }
         var number = data.toLong() * maxScore.toLong()
         val chars = CharArray(MAX_ZEROS + 6)
@@ -1032,86 +1032,86 @@ class Score private constructor(
         fun fromOld(value: Int?): Score? {
             if (value == null) return null
             if (value < 0 || value > 10000) {
-                com.lagradost.api.Log.w(TAG, "old: $value ∉ [0, 10000]")
+                com.lagradost.api.Log.w(TAG, "old: $value ? [0, 10000]")
                 return null
             }
             return Score(value * 100_000)
         }
 
-        /** `value ∈ [0, maxScore]` */
+        /** `value ? [0, maxScore]` */
         fun from(value: Int?, maxScore: Int): Score? {
             if (value == null) {
                 return null
             }
             if (value < 0 || value > maxScore) {
-                com.lagradost.api.Log.w(TAG, "fromInt: $value ∉ [0, $maxScore]")
+                com.lagradost.api.Log.w(TAG, "fromInt: $value ? [0, $maxScore]")
                 return null
             }
             return Score((MAX / maxScore) * value)
         }
 
-        /** `value ∈ [0.0, maxScore]` */
+        /** `value ? [0.0, maxScore]` */
         fun from(value: Double?, maxScore: Int): Score? {
             if (value == null) {
                 return null
             }
             if (value < 0.0 || value > maxScore) {
-                com.lagradost.api.Log.w(TAG, "fromDouble: $value ∉ [0.0, $maxScore]")
+                com.lagradost.api.Log.w(TAG, "fromDouble: $value ? [0.0, $maxScore]")
                 return null
             }
             return Score(((MAX / maxScore).toDouble() * value).roundToInt())
         }
 
-        /** `value ∈ [0.0f, maxScore]` */
+        /** `value ? [0.0f, maxScore]` */
         fun from(value: Float?, maxScore: Int): Score? {
             if (value == null) {
                 return null
             }
             if (value < 0.0 || value > maxScore) {
-                com.lagradost.api.Log.w(TAG, "fromFloat: $value ∉ [0.0f, $maxScore]")
+                com.lagradost.api.Log.w(TAG, "fromFloat: $value ? [0.0f, $maxScore]")
                 return null
             }
             return Score(((MAX / maxScore).toFloat() * value).roundToInt())
         }
 
-        /** `value ∈ ["0.0", maxScore]` */
+        /** `value ? ["0.0", maxScore]` */
         fun from(value: String?, maxScore: Int): Score? =
             from(value?.trim()?.toDoubleOrNull()?.absoluteValue, maxScore)
 
-        /** `value ∈ [0, 5]` */
+        /** `value ? [0, 5]` */
         fun from5(value: Int?): Score? = from(value, 5)
 
-        /** `value ∈ [0, 10]` */
+        /** `value ? [0, 10]` */
         fun from10(value: Int?): Score? = from(value, 10)
 
-        /** `value ∈ [0, 100]` */
+        /** `value ? [0, 100]` */
         fun from100(value: Int?): Score? = from(value, 100)
 
-        /** `value ∈ [0.0, 5.0]` */
+        /** `value ? [0.0, 5.0]` */
         fun from5(value: Double?): Score? = from(value, 5)
 
-        /** `value ∈ [0.0, 10.0]` */
+        /** `value ? [0.0, 10.0]` */
         fun from10(value: Double?): Score? = from(value, 10)
 
-        /** `value ∈ [0.0, 100.0]` */
+        /** `value ? [0.0, 100.0]` */
         fun from100(value: Double?): Score? = from(value, 100)
 
-        /** `value ∈ [0.0f, 5.0f]` */
+        /** `value ? [0.0f, 5.0f]` */
         fun from5(value: Float?): Score? = from(value, 5)
 
-        /** `value ∈ [0.0f, 10.0f]` */
+        /** `value ? [0.0f, 10.0f]` */
         fun from10(value: Float?): Score? = from(value, 10)
 
-        /** `value ∈ [0.0f, 100.0f]` */
+        /** `value ? [0.0f, 100.0f]` */
         fun from100(value: Float?): Score? = from(value, 100)
 
-        /** `value ∈ ["0.0", "5.0"]` */
+        /** `value ? ["0.0", "5.0"]` */
         fun from5(value: String?): Score? = from(value, 5)
 
-        /** `value ∈ ["0.0", "10.0"]` */
+        /** `value ? ["0.0", "10.0"]` */
         fun from10(value: String?): Score? = from(value, 10)
 
-        /** `value ∈ ["0.0", "100.0"]` */
+        /** `value ? ["0.0", "100.0"]` */
         fun from100(value: String?): Score? = from(value, 100)
     }
 }
@@ -1375,9 +1375,9 @@ fun getQualityFromString(string: String?): SearchQuality? {
  * https://en.wikipedia.org/wiki/Uniform_Resource_Identifier
  * ```text
  *           userinfo       host      port
- *           ┌──┴───┐ ┌──────┴──────┐ ┌┴─┐
+ *           +------+ +-------------+ +--+
  *   https://john.doe@www.example.com:1234/forum/questions/?tag=networking&order=newest#:~:text=whatever
- *   └─┬─┘   └─────────────┬─────────────┘└───────┬───────┘ └────────────┬────────────┘ └───────┬───────┘
+ *   +---+   +---------------------------++---------------+ +-------------------------+ +---------------+
  *   scheme            authority                path                   query                 fragment
  * ```
  */

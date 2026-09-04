@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FF0D0D1A"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="32dp"
+    android:fitsSystemWindows="true"
+    tools:context=".ui.login.GoogleLoginActivity">
+
+    <!-- App Icon / Logo area -->
+    <ImageView
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_marginBottom="24dp"
+        android:contentDescription="@string/app_name"
+        android:src="@mipmap/ic_launcher"
+        android:scaleType="fitCenter" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="@string/app_name"
+        android:textColor="#FFFFFFFF"
+        android:textSize="28sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:gravity="center"
+        android:text="Sign in to continue"
+        android:textColor="#B0FFFFFF"
+        android:textSize="16sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="40dp"
+        android:gravity="center"
+        android:text="Your account is required to use PulseStream.\nWe use it to backup your data and keep it safe."
+        android:textColor="#80FFFFFF"
+        android:textSize="13sp"
+        android:lineSpacingExtra="3dp" />
+
+    <!-- Google Sign-In Button — custom styled to work on phone + TV + tablet -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/googleSignInButton"
+        android:layout_width="wrap_content"
+        android:layout_height="56dp"
+        android:layout_marginBottom="24dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:minWidth="280dp"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:text="Sign in with Google"
+        android:textColor="#FF000000"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:backgroundTint="#FFFFFFFF" />
+
+    <!-- Loading indicator -->
+    <ProgressBar
+        android:id="@+id/loginLoading"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginBottom="16dp"
+        android:visibility="gone" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:gravity="center"
+        android:text="By signing in, you agree to our Terms of Service\nand Privacy Policy."
+        android:textColor="#50FFFFFF"
+        android:textSize="11sp"
+        android:lineSpacingExtra="2dp" />
+
+</LinearLayout>

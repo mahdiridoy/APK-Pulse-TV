@@ -75,17 +75,17 @@ class StringUtilsTest {
 
     @Test
     fun encodeUrlNonAsciiLatinCharactersAreEncoded() {
-        assertEquals("caf%C3%A9", "cafÃ©".encodeUrl())
+        assertEquals("caf%C3%A9", "café".encodeUrl())
     }
 
     @Test
     fun encodeUrlCjkCharactersAreEncoded() {
-        assertEquals("%E6%97%A5%E6%9C%AC%E8%AA%9E", "æ—¥æœ¬èªž".encodeUrl())
+        assertEquals("%E6%97%A5%E6%9C%AC%E8%AA%9E", "???".encodeUrl())
     }
 
     @Test
     fun encodeUrlEmojiIsEncoded() {
-        assertEquals("%F0%9F%98%80", "\uD83D\uDE00".encodeUrl()) // ðŸ˜€
+        assertEquals("%F0%9F%98%80", "\uD83D\uDE00".encodeUrl()) // ??
     }
 
     @Test
@@ -133,7 +133,7 @@ class StringUtilsTest {
 
     @Test
     fun encodeUrlEmojiSurrogatePairRoundTripsCleanly() {
-        val emoji = "ðŸ˜Š"
+        val emoji = "??"
         assertEquals(emoji, emoji.encodeUrl().decodeUrl())
     }
 
@@ -196,20 +196,20 @@ class StringUtilsTest {
 
     @Test
     fun decodeUrlMultiByteUtf8SequenceDecodesCorrectly() {
-        // Ã© in UTF-8 is %C3%A9
-        assertEquals("Ã©", "%C3%A9".decodeUrl())
+        // é in UTF-8 is %C3%A9
+        assertEquals("é", "%C3%A9".decodeUrl())
     }
 
     @Test
     fun decodeUrlCjkEncodedSequenceDecodesToOriginal() {
-        // æ—¥ in UTF-8 is %E6%97%A5
-        assertEquals("æ—¥", "%E6%97%A5".decodeUrl())
+        // ? in UTF-8 is %E6%97%A5
+        assertEquals("?", "%E6%97%A5".decodeUrl())
     }
 
     @Test
     fun decodeUrlEmojiEncodedSequenceDecodesToOriginal() {
-        // ðŸ˜€ in UTF-8 is %F0%9F%98%80
-        assertEquals("ðŸ˜€", "%F0%9F%98%80".decodeUrl())
+        // ?? in UTF-8 is %F0%9F%98%80
+        assertEquals("??", "%F0%9F%98%80".decodeUrl())
     }
 
     @Test
@@ -257,25 +257,25 @@ class StringUtilsTest {
 
     @Test
     fun roundTripLatinExtendedCharacters() {
-        val original = "Ã Ã¡Ã¢Ã£Ã¤Ã¥Ã¦Ã§Ã¨Ã©ÃªÃ«Ã¬Ã­Ã®Ã¯Ã°Ã±Ã²Ã³Ã´ÃµÃ¶Ã¸Ã¹ÃºÃ»Ã¼Ã½Ã¾Ã¿"
+        val original = "àáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ"
         assertEquals(original, original.encodeUrl().decodeUrl())
     }
 
     @Test
     fun roundTripCjkCharacters() {
-        val original = "æ—¥æœ¬èªžãƒ†ã‚¹ãƒˆ"
+        val original = "??????"
         assertEquals(original, original.encodeUrl().decodeUrl())
     }
 
     @Test
     fun roundTripArabicCharacters() {
-        val original = "Ù…Ø±Ø­Ø¨Ø§ Ø¨Ø§Ù„Ø¹Ø§Ù„Ù…"
+        val original = "????? ???????"
         assertEquals(original, original.encodeUrl().decodeUrl())
     }
 
     @Test
     fun roundTripEmoji() {
-        val original = "ðŸ˜€ðŸŽ‰ðŸ”¥ðŸ’¯"
+        val original = "????????"
         assertEquals(original, original.encodeUrl().decodeUrl())
     }
 
@@ -294,8 +294,8 @@ class StringUtilsTest {
     @Test
     fun roundTripLongMixedString() {
         val original = ("Hello World! " +
-                "ÃœnÃ¯cÃ¶dÃ© & symbols: <>\"/\\|?* " +
-                "CJK: æ—¥æœ¬èªž Emoji: ðŸš€").repeat(50)
+                "Ünïcödé & symbols: <>\"/\\|?* " +
+                "CJK: ??? Emoji: ??").repeat(50)
         assertEquals(original, original.encodeUrl().decodeUrl())
     }
 }

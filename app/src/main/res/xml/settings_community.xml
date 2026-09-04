@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:title="@string/community_stats_category">
+        <Preference
+            android:key="@string/live_watching_label"
+            android:title="@string/live_watching_label"
+            android:summary="@string/live_watching_loading"
+            android:icon="@drawable/ic_baseline_people_24"
+            android:selectable="false" />
+        <Preference
+            android:key="@string/total_downloads_label"
+            android:title="@string/total_downloads_label"
+            android:summary="@string/total_downloads_loading"
+            android:icon="@drawable/netflix_download"
+            android:selectable="false" />
+        <Preference
+            android:key="@string/total_installed_label"
+            android:title="@string/total_installed_label"
+            android:summary="@string/total_installed_loading"
+            android:icon="@drawable/ic_baseline_system_update_24"
+            android:selectable="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/local_activity_category">
+        <Preference
+            android:key="@string/local_favorites_label"
+            android:title="@string/local_favorites_label"
+            android:summary="@string/local_favorites_loading"
+            android:icon="@drawable/ic_baseline_star_24"
+            android:selectable="false" />
+        <Preference
+            android:key="@string/local_downloads_label"
+            android:title="@string/local_downloads_label"
+            android:summary="@string/local_downloads_loading"
+            android:icon="@drawable/baseline_downloading_24"
+            android:selectable="false" />
+        <Preference
+            android:key="@string/local_history_label"
+            android:title="@string/local_history_label"
+            android:summary="@string/local_history_loading"
+            android:icon="@drawable/ic_baseline_restart_24"
+            android:selectable="false" />
+    </PreferenceCategory>
+</PreferenceScreen>

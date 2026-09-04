@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "169579768757",
+    "project_id": "pulsestream-df9a5",
+    "storage_bucket": "pulsestream-df9a5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:169579768757:android:be9b93cd03c629f5fa47fc",
+        "android_client_info": {
+          "package_name": "com.pulsestream.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBAwBEe9FV85A6iXuShKPm1SoDfcPHS-fU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

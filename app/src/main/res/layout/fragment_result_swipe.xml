@@ -250,7 +250,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:visibility="gone"
-                    class="com.lagradost.cloudstream3.ui.MyMiniControllerFragment"
+                    class="com.pulsestream.app.ui.MyMiniControllerFragment"
                     tools:ignore="FragmentTagUsage" />
         </LinearLayout>
     </FrameLayout>

@@ -9,9 +9,12 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.dokka)
     alias(libs.plugins.kotlin.serialization)
+    id("com.google.gms.google-services")
 }
 
 val javaTarget = JvmTarget.fromTarget(libs.versions.jvmTarget.get())
+
+// Protobuf resolution no longer needed — Firestore removed, using Cloudflare Worker for sync
 
 abstract class GenerateGitHashTask : DefaultTask() {
 
@@ -125,7 +128,7 @@ android {
     compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "com.lagradost.cloudstream3"
+        applicationId = "com.pulsestream.app"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
         // versionCode is generated from the build time (seconds since a fixed epoch).
@@ -171,15 +174,16 @@ android {
     buildTypes {
         release {
             isDebuggable = false
-            isMinifyEnabled = true
-            isShrinkResources = true
+            isMinifyEnabled = false
+            isShrinkResources = false
             signingConfig = signingConfigs.getByName("stable")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
-        debug {
+        // Debug build disabled - release only
+        /*debug {
             isDebuggable = true
             applicationIdSuffix = ".debug"
             signingConfig = signingConfigs.getByName("stable")
@@ -187,7 +191,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-        }
+        }*/
     }
 
     compileOptions {
@@ -221,7 +225,7 @@ android {
         }
     }
 
-    namespace = "com.lagradost.cloudstream3"
+    namespace = "com.pulsestream.app"
 }
 
 // ============================================================================
@@ -334,6 +338,15 @@ dependencies {
     androidTestImplementation(libs.instancio.core)
     androidTestImplementation(libs.junit.ktx)
     androidTestImplementation(libs.kotlin.test)
+
+    // Firebase (Auth + RTDB for Community presence/stats. Firestore uses REST API
+    // to avoid protobuf conflict with protolite-well-known-types.)
+    implementation(platform("com.google.firebase:firebase-bom:34.18.0"))
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-database")
+    // FIRESTORE uses REST API via OkHttp (FirestoreRestSyncManager.kt) — no SDK dependency
+    implementation("com.google.android.gms:play-services-auth:21.3.0")
 
     // Android Core & Lifecycle
     implementation(libs.core.ktx)

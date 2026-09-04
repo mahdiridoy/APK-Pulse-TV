@@ -3,10 +3,17 @@ package com.lagradost.cloudstream3.plugins
 import android.content.Context
 import android.content.res.Resources
 import android.util.Log
-import com.lagradost.cloudstream3.actions.VideoClickAction
-import com.lagradost.cloudstream3.actions.VideoClickActionHolder
+import com.pulsestream.app.actions.VideoClickAction
+import com.pulsestream.app.actions.VideoClickActionHolder
 import kotlin.Throws
 
+/**
+ * Compatibility shim: external .cs3 plugins expect this class at
+ * [com.lagradost.cloudstream3.plugins.Plugin] (the original CloudStream3
+ * package) so they can `extends Plugin` in their manifest. The real
+ * plugin implementation lives in [com.pulsestream.app.plugins.Plugin];
+ * this class simply forwards the registration calls to the app's holder.
+ */
 abstract class Plugin : BasePlugin() {
     /**
      * Called when your Plugin is loaded
@@ -20,7 +27,6 @@ abstract class Plugin : BasePlugin() {
 
     /**
      * Used to register VideoClickAction instances
-     * @param element VideoClickAction you want to register
      */
     fun registerVideoClickAction(element: VideoClickAction) {
         Log.i(PLUGIN_TAG, "Adding ${element.name} VideoClickAction")

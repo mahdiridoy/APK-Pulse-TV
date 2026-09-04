@@ -84,6 +84,8 @@
             android:padding="8dp"
             android:src="@drawable/ic_baseline_hd_24"
             app:tint="@android:color/white" />
+
+        <!-- Watch Together removed from Live TV — only accessible from Settings -->
     </LinearLayout>
 
     <!-- Center OSD for channel switch / volume / brightness / resolution feedback -->

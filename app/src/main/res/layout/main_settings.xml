@@ -69,14 +69,23 @@
                 android:drawableStart="@drawable/ic_baseline_people_24"
                 android:drawableTint="?attr/textColor"
                 android:nextFocusUp="@id/settings_general"
-                android:nextFocusDown="@id/settings_player"
+                android:nextFocusDown="@id/settings_community"
                 android:text="@string/watch_together_title" />
+
+            <TextView
+                android:id="@+id/settings_community"
+                style="@style/SettingsItem"
+                android:drawableStart="@drawable/ic_baseline_people_24"
+                android:drawableTint="?attr/textColor"
+                android:nextFocusUp="@id/settings_watch_together"
+                android:nextFocusDown="@id/settings_player"
+                android:text="@string/community_stats_category" />
 
             <TextView
                 android:id="@+id/settings_player"
                 style="@style/SettingsItem"
 
-                android:nextFocusUp="@id/settings_watch_together"
+                android:nextFocusUp="@id/settings_community"
                 android:nextFocusDown="@id/settings_providers"
                 android:text="@string/category_player" />
 

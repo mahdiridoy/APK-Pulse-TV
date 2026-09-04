@@ -1,4 +1,4 @@
-import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+﻿import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 import com.codingfeline.buildkonfig.compiler.FieldSpec
 import org.jetbrains.dokka.gradle.engine.parameters.KotlinPlatform
 import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier
@@ -23,7 +23,7 @@ kotlin {
     applyDefaultHierarchyTemplate()
 
     android {
-        // If this is the same com.lagradost.cloudstream3.R stops working
+        // If this is the same com.pulsestream.app.R stops working
         namespace = "com.lagradost.api"
 
         compileSdk = libs.versions.compileSdk.get().toInt()

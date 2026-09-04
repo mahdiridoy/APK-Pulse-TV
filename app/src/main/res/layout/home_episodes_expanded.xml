@@ -47,7 +47,7 @@
                 android:contentDescription="@string/home_expanded_hide" />
     </FrameLayout>
 
-    <com.lagradost.cloudstream3.ui.AutofitRecyclerView
+    <com.pulsestream.app.ui.AutofitRecyclerView
             android:descendantFocusability="afterDescendants"
 
             android:layout_width="match_parent"

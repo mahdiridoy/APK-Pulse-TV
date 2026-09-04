@@ -32,12 +32,6 @@
             android:icon="@drawable/ic_baseline_folder_open_24"
             android:key="@string/backup_path_key"
             android:title="@string/backup_path_title" />
-
-        <Preference
-            android:key="@string/community_stats_key"
-            android:title="@string/community_stats"
-            android:summary="@string/community_stats_loading"
-            android:selectable="false" />
     </PreferenceCategory>
 
     <PreferenceCategory

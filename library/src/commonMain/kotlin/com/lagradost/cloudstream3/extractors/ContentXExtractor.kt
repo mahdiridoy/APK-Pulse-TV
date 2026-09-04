@@ -1,4 +1,4 @@
-// ! Bu araÃ§ @keyiflerolsun tarafÄ±ndan | @KekikAkademi iÃ§in yazÄ±lmÄ±ÅŸtÄ±r.
+// ! Bu araç @keyiflerolsun tarafindan | @KekikAkademi için yazilmistir.
 
 package com.lagradost.cloudstream3.extractors
 
@@ -26,7 +26,7 @@ open class ContentX : ExtractorApi() {
 
             subtitleCallback.invoke(
                 newSubtitleFile(
-                    lang = subLang.replace("\\u0131", "Ä±").replace("\\u0130", "Ä°").replace("\\u00fc", "Ã¼").replace("\\u00e7", "Ã§"),
+                    lang = subLang.replace("\\u0131", "i").replace("\\u0130", "I").replace("\\u00fc", "ü").replace("\\u00e7", "ç"),
                     url  = fixUrl(subUrl.replace("\\", ""))
                 )
             )
@@ -48,7 +48,7 @@ open class ContentX : ExtractorApi() {
             }
         )
 
-        val iDublaj = Regex(""",\"([^']+)\",\"TÃ¼rkÃ§e""").find(iSource)!!.groups[1]?.value
+        val iDublaj = Regex(""",\"([^']+)\",\"Türkçe""").find(iSource)!!.groups[1]?.value
         if (iDublaj != null) {
             val dublajSource  = app.get("${mainUrl}/source2.php?v=${iDublaj}", referer=extRef).text
             val dublajExtract = Regex("""file\":\"([^\"]+)""").find(dublajSource)!!.groups[1]?.value ?: throw ErrorLoadingException("dublajExtract is null")
@@ -56,8 +56,8 @@ open class ContentX : ExtractorApi() {
 
             callback.invoke(
                 newExtractorLink(
-                    source  = "${this.name} TÃ¼rkÃ§e Dublaj",
-                    name    = "${this.name} TÃ¼rkÃ§e Dublaj",
+                    source  = "${this.name} Türkçe Dublaj",
+                    name    = "${this.name} Türkçe Dublaj",
                     url     = dublajLink,
                     type = ExtractorLinkType.M3U8
                 ) {

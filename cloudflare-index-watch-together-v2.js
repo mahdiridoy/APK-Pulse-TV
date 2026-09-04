@@ -57,6 +57,12 @@ export default {
       response = await getUserCount(env);
     }
     else if (
+      url.pathname === "/user/ping" &&
+      request.method === "POST"
+    ) {
+      response = await pingUser(request, env);
+    }
+    else if (
       url.pathname === "/room/create" &&
       request.method === "POST"
     ) {
@@ -154,6 +160,30 @@ export default {
         }
       }
     }
+    else if (
+      url.pathname === "/sync/save" &&
+      request.method === "POST"
+    ) {
+      response = await syncSave(request, env);
+    }
+    else if (
+      url.pathname === "/sync/load" &&
+      request.method === "GET"
+    ) {
+      response = await syncLoad(request, env);
+    }
+    else if (
+      url.pathname === "/sync/push" &&
+      request.method === "POST"
+    ) {
+      response = await syncPush(request, env);
+    }
+    else if (
+      url.pathname === "/auth/verify" &&
+      request.method === "POST"
+    ) {
+      response = await authVerify(request, env);
+    }
     else {
       response = new Response("Not Found", { status: 404 });
     }
@@ -220,11 +250,12 @@ async function registerUser(request, env) {
       appVersion,
       registeredAt: timestamp,
       lastSeen: timestamp,
+      lastPing: timestamp,
     };
 
     await env.USERS_KV.put(userKey, JSON.stringify(userData));
 
-    /* Increment total user count */
+    /* Increment total user count (total downloads — never decreases) */
     const countStr = await env.USERS_KV.get("user:count");
     const count = countStr ? parseInt(countStr, 10) + 1 : 1;
     await env.USERS_KV.put("user:count", String(count));
@@ -237,10 +268,11 @@ async function registerUser(request, env) {
   }
 
   /*
-   * Existing user — just update lastSeen
+   * Existing user — just update lastSeen and lastPing
    */
   const userData = JSON.parse(existing);
   userData.lastSeen = timestamp;
+  userData.lastPing = timestamp;
   await env.USERS_KV.put(userKey, JSON.stringify(userData));
 
   const countStr = await env.USERS_KV.get("user:count");
@@ -262,12 +294,15 @@ async function registerUser(request, env) {
 
 async function getUserCount(env) {
   const countStr = await env.USERS_KV.get("user:count");
-  const count = countStr ? parseInt(countStr, 10) : 0;
+  const totalDownloads = countStr ? parseInt(countStr, 10) : 0;
 
-  // Count active users (seen in last 24 hours).
-  let activeCount = 0;
   const now = Date.now();
-  const activeWindowMs = 24 * 60 * 60 * 1000;
+  const liveWindowMs = 60 * 1000;        // 60 seconds — "live watching"
+  const installedWindowMs = 30 * 24 * 60 * 60 * 1000; // 30 days — still installed
+
+  let liveWatching = 0;
+  let totalInstalled = 0;
+
   const list = await env.USERS_KV.list({ prefix: "user:" });
   for (const key of list.keys) {
     if (key.name === "user:count") continue;
@@ -275,8 +310,13 @@ async function getUserCount(env) {
       const val = await env.USERS_KV.get(key.name);
       if (val) {
         const userData = JSON.parse(val);
-        if (userData.lastSeen && (now - userData.lastSeen) < activeWindowMs) {
-          activeCount++;
+        const ping = userData.lastPing || 0;
+        const seen = userData.lastSeen || 0;
+        if (ping && (now - ping) < liveWindowMs) {
+          liveWatching++;
+        }
+        if (seen && (now - seen) < installedWindowMs) {
+          totalInstalled++;
         }
       }
     } catch {}
@@ -284,9 +324,63 @@ async function getUserCount(env) {
 
   return Response.json({
     ok: true,
-    totalUsers: count,
-    activeUsers: activeCount,
+    liveWatching,
+    totalDownloads,
+    totalInstalled,
   });
+}
+
+
+/*
+ * ============================================================
+ * PING USER (heart-beat for live watching count)
+ * ============================================================
+ */
+
+async function pingUser(request, env) {
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return Response.json({ error: "Invalid JSON." }, { status: 400 });
+  }
+
+  const userId = body?.userId;
+  if (!userId) {
+    return Response.json({ error: "userId is required." }, { status: 400 });
+  }
+
+  const userKey = `user:${userId}`;
+  const existing = await env.USERS_KV.get(userKey);
+  const timestamp = Date.now();
+
+  if (existing) {
+    const userData = JSON.parse(existing);
+    userData.lastPing = timestamp;
+    userData.lastSeen = timestamp;
+    // Update appVersion if provided
+    if (body.appVersion) userData.appVersion = body.appVersion;
+    await env.USERS_KV.put(userKey, JSON.stringify(userData));
+  } else {
+    // Unknown user — register them on first ping
+    const userData = {
+      userId,
+      name: body.name || "PulseStream User",
+      email: "",
+      photo: "",
+      appVersion: body.appVersion || "",
+      registeredAt: timestamp,
+      lastSeen: timestamp,
+      lastPing: timestamp,
+    };
+    await env.USERS_KV.put(userKey, JSON.stringify(userData));
+
+    const countStr = await env.USERS_KV.get("user:count");
+    const count = countStr ? parseInt(countStr, 10) + 1 : 1;
+    await env.USERS_KV.put("user:count", String(count));
+  }
+
+  return Response.json({ ok: true });
 }
 
 
@@ -490,7 +584,16 @@ async function handleUpdateCheck(request, env) {
   const currentVersion = url.searchParams.get('v') || '0.0.0.0';
 
   try {
-    const response = await fetch(GITHUB_API);
+    // Use GITHUB_TOKEN for private repo access
+    const headers = {
+      'Accept': 'application/vnd.github.v3+json',
+      'User-Agent': 'PulseStream-Update-Checker'
+    };
+    if (env.GITHUB_TOKEN) {
+      headers['Authorization'] = `Bearer ${env.GITHUB_TOKEN}`;
+    }
+    
+    const response = await fetch(GITHUB_API, { headers });
     if (response.status === 404) {
       return Response.json({ updateAvailable: false }, { headers: corsHeaders() });
     }
@@ -1744,6 +1847,185 @@ function isValidRoomCode(roomCode) {
  * CORS HEADERS
  * ============================================================
  */
+
+/*
+ * ============================================================
+ * USER DATA SYNC — SAVE
+ * ============================================================
+ */
+
+async function syncSave(request, env) {
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return Response.json({ ok: false, error: "Invalid JSON." }, { status: 400 });
+  }
+
+  const userId = body?.userId;
+  const data = body?.data;
+
+  if (!userId || !data) {
+    return Response.json({ ok: false, error: "userId and data required." }, { status: 400 });
+  }
+
+  const syncKey = `sync:${userId}`;
+  const syncData = {
+    userId,
+    history: data.history || [],
+    favorites: data.favorites || [],
+    settings: data.settings || {},
+    watchProgress: data.watchProgress || {},
+    savedAt: Date.now(),
+  };
+
+  await env.USERS_KV.put(syncKey, JSON.stringify(syncData), { expirationTtl: 365 * 24 * 3600 });
+
+  return Response.json({ ok: true, savedAt: syncData.savedAt });
+}
+
+
+/*
+ * ============================================================
+ * USER DATA SYNC — LOAD
+ * ============================================================
+ */
+
+async function syncLoad(request, env) {
+  const url = new URL(request.url);
+  const userId = url.searchParams.get("userId");
+
+  if (!userId) {
+    return Response.json({ ok: false, error: "userId required." }, { status: 400 });
+  }
+
+  const syncKey = `sync:${userId}`;
+  const raw = await env.USERS_KV.get(syncKey);
+
+  if (raw) {
+    try {
+      const data = JSON.parse(raw);
+      return Response.json({ ok: true, data });
+    } catch {
+      return Response.json({ ok: true, data: { history: [], favorites: [], settings: {}, watchProgress: {} } });
+    }
+  }
+
+  return Response.json({ ok: true, data: { history: [], favorites: [], settings: {}, watchProgress: {} } });
+}
+
+
+/*
+ * ============================================================
+ * USER DATA SYNC — PUSH (merge specific type)
+ * ============================================================
+ */
+
+async function syncPush(request, env) {
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return Response.json({ ok: false, error: "Invalid JSON." }, { status: 400 });
+  }
+
+  const userId = body?.userId;
+  const type = body?.type;    // "history" | "favorites" | "settings" | "watchProgress"
+  const incoming = body?.data;
+
+  if (!userId || !type || incoming === undefined) {
+    return Response.json({ ok: false, error: "userId, type, and data required." }, { status: 400 });
+  }
+
+  const allowed = ["history", "favorites", "settings", "watchProgress"];
+  if (!allowed.includes(type)) {
+    return Response.json({ ok: false, error: "Invalid sync type." }, { status: 400 });
+  }
+
+  const syncKey = `sync:${userId}`;
+  const raw = await env.USERS_KV.get(syncKey);
+  let existing = raw ? JSON.parse(raw) : { history: [], favorites: [], settings: {}, watchProgress: {} };
+
+  if (type === "history" && Array.isArray(incoming)) {
+    /* Merge history: add new items, update existing by id */
+    const map = new Map((existing.history || []).map(h => [h.id, h]));
+    for (const item of incoming) {
+      if (item && item.id) map.set(item.id, item);
+    }
+    existing.history = Array.from(map.values());
+  } else if (type === "favorites" && Array.isArray(incoming)) {
+    /* Favorites: set-based merge by id */
+    const map = new Map((existing.favorites || []).map(f => [f.id || f, f]));
+    for (const item of incoming) {
+      const id = item?.id || item;
+      if (id) map.set(id, item);
+    }
+    existing.favorites = Array.from(map.values());
+  } else if (type === "settings" && typeof incoming === "object") {
+    /* Settings: shallow merge */
+    existing.settings = { ...(existing.settings || {}), ...incoming };
+  } else if (type === "watchProgress" && typeof incoming === "object") {
+    /* Watch progress: merge by content key */
+    existing.watchProgress = { ...(existing.watchProgress || {}), ...incoming };
+  } else {
+    return Response.json({ ok: false, error: "Invalid data format for type." }, { status: 400 });
+  }
+
+  existing.savedAt = Date.now();
+  existing.userId = userId;
+
+  await env.USERS_KV.put(syncKey, JSON.stringify(existing), { expirationTtl: 365 * 24 * 3600 });
+
+  return Response.json({ ok: true, savedAt: existing.savedAt });
+}
+
+
+/*
+ * ============================================================
+ * AUTH — VERIFY APP LEGITIMACY
+ * ============================================================
+ */
+
+async function authVerify(request, env) {
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return Response.json({ ok: false, error: "Invalid JSON." }, { status: 400 });
+  }
+
+  const userId = body?.userId;
+  const appId = body?.appId || "";
+  const appVersion = body?.appVersion || "";
+  const sigHash = body?.signature || "";
+
+  if (!userId) {
+    return Response.json({ ok: false, error: "userId required." }, { status: 400 });
+  }
+
+  /* Check against known good signatures */
+  const validSignatures = (env.VALID_SIGNATURES || "").split(",").filter(Boolean);
+  const isTrusted = validSignatures.length === 0 || validSignatures.includes(sigHash);
+
+  /* Store verification record */
+  const verifyKey = `verify:${userId}`;
+  const record = {
+    userId,
+    appId,
+    appVersion,
+    sigHash,
+    verified: isTrusted,
+    verifiedAt: Date.now(),
+  };
+  await env.USERS_KV.put(verifyKey, JSON.stringify(record), { expirationTtl: 90 * 24 * 3600 });
+
+  return Response.json({
+    ok: true,
+    licensed: isTrusted,
+    message: isTrusted ? "App verified" : "Unverified app — some features may be limited",
+  });
+}
+
 
 function corsHeaders() {
   return {

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--https://newbedev.com/concatenate-multiple-strings-in-xml--><resources>
     <!-- FORMAT MIGHT TRANSLATE, WILL CAUSE CRASH IF APPLIED WRONG -->
     <string name="app_dub_sub_episode_text_format" formatted="true">%1$s Ep %2$d</string>
@@ -408,7 +408,6 @@
     <string name="watch_together_room_password">Room password</string>
     <string name="watch_together_room_password_hint">Share this password with your guests</string>
     <string name="watch_together_room_code_hint">Enter the host\'s room code</string>
-    <string name="watch_together_room_not_found">Room not found. Ask the host to create a room first.</string>
     <string name="watch_together_create_room">Create Room</string>
     <string name="watch_together_join_room">Join</string>
     <string name="watch_together_copy_code">Copy code</string>
@@ -859,14 +858,32 @@
     <string name="live_tv_brightness_format" formatted="true">Brightness %d%%</string>
     <string name="live_tv_trying_mirror" formatted="true">%1$s — mirror %2$d/%3$d</string>
     <string name="live_tv_quality_indicator" formatted="true">%1$s • %2$s</string>
+    <string name="live_tv_server_label">Server</string>
+    <string name="live_tv_server_1">Server 1</string>
+    <string name="live_tv_server_2">Server 2</string>
 
-    <!-- Watch Together Chat -->
-    <string name="watch_together_chat">Chat</string>
-    <string name="watch_together_chat_hint">Type a message…</string>
-    <string name="watch_together_chat_send">Send</string>
-    <string name="watch_together_sync_status" formatted="true">%1$s • Synced %2$s</string>
-    <string name="watch_together_sync_ahead" formatted="true">%1$s • %2$s ahead</string>
-    <string name="watch_together_sync_behind" formatted="true">%1$s • %2$s behind</string>
+    <!-- Custom Playlists -->
+    <string name="custom_playlists_category">Live TV Playlists</string>
+    <string name="add_custom_playlist">Add Custom Playlist</string>
+    <string name="manage_custom_playlists">Manage Playlists</string>
+    <string name="playlist_type_label">Playlist Type</string>
+    <string name="playlist_type_m3u">M3U Playlist</string>
+    <string name="playlist_type_xtream">Xtream Codes</string>
+    <string name="playlist_name_hint">Playlist Name</string>
+    <string name="playlist_url_hint">Link to the playlist</string>
+    <string name="xtream_server_hint">Server URL (e.g. http://server:port)</string>
+    <string name="xtream_username_hint">Username</string>
+    <string name="xtream_password_hint">Password</string>
+    <string name="save">Save</string>
+    <string name="playlist_added">Playlist added successfully</string>
+    <string name="playlist_updated">Playlist updated</string>
+    <string name="playlist_deleted">Playlist deleted</string>
+    <string name="playlist_error_empty_name">Please enter a playlist name</string>
+    <string name="playlist_error_empty_url">Please enter a playlist URL</string>
+    <string name="playlist_error_empty_credentials">Please fill all Xtream Codes fields</string>
+    <string name="playlist_refreshing">Refreshing playlists…</string>
+    <string name="no_custom_playlists">No custom playlists added yet</string>
+    <string name="playlists_category_format" formatted="true">%1$s (%2$d channels)</string>
 
     <!-- Remote Update -->
     <string name="update_available">Update available: %s</string>
@@ -876,10 +893,22 @@
     <string name="update_changelog">Changelog</string>
 
     <!-- Community Stats -->
+    <string name="community_stats_category">Community</string>
     <string name="community_stats">Community Stats</string>
-    <string name="active_users_label">Active Users (24h)</string>
-    <string name="total_installs_label">Total Installs</string>
     <string name="community_stats_loading">Loading stats…</string>
     <string name="community_stats_error">Could not load stats</string>
-    <string name="community_stats_detail" formatted="true">👤 %1$d active (24h)  •  📦 %2$d total installs</string>
-</resources>
+    <string name="live_watching_label">Live Watching</string>
+    <string name="live_watching_loading">● Checking…</string>
+    <string name="total_downloads_label">Total Downloads</string>
+    <string name="total_downloads_loading">Loading…</string>
+    <string name="total_installed_label">Total Installed</string>
+    <string name="total_installed_loading">Loading…</string>
+
+    <!-- Local-only ""Your Activity"" stats for Settings > Community (always work, no server needed) -->
+    <string name="local_activity_category">Your Activity</string>
+    <string name="local_favorites_label">Your Favorites</string>
+    <string name="local_favorites_loading">Loading.</string>
+    <string name="local_downloads_label">Your Downloads</string>
+    <string name="local_downloads_loading">Loading.</string>
+    <string name="local_history_label">Your Watch History</string>
+    <string name="local_history_loading">Loading.</string></resources>

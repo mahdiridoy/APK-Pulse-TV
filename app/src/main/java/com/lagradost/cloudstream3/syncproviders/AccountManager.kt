@@ -1,167 +1,61 @@
 package com.lagradost.cloudstream3.syncproviders
 
-import com.lagradost.cloudstream3.CloudStreamApp.Companion.getKey
-import com.lagradost.cloudstream3.CloudStreamApp.Companion.setKey
-import com.lagradost.cloudstream3.LoadResponse
-import com.lagradost.cloudstream3.syncproviders.providers.Addic7ed
-import com.lagradost.cloudstream3.syncproviders.providers.AniListApi
-import com.lagradost.cloudstream3.syncproviders.providers.KitsuApi
-import com.lagradost.cloudstream3.syncproviders.providers.LocalList
-import com.lagradost.cloudstream3.syncproviders.providers.MALApi
-import com.lagradost.cloudstream3.syncproviders.providers.OpenSubtitlesApi
-import com.lagradost.cloudstream3.syncproviders.providers.SimklApi
-import com.lagradost.cloudstream3.syncproviders.providers.SubDlApi
-import com.lagradost.cloudstream3.syncproviders.providers.SubSourceApi
-import com.lagradost.cloudstream3.utils.DataStoreHelper
-import com.lagradost.cloudstream3.utils.videoskip.AnimeSkipAuth
-import java.util.concurrent.TimeUnit
+import com.pulsestream.app.syncproviders.AccountManager as RealAccountManager
+import com.pulsestream.app.syncproviders.AuthData
 
+/**
+ * Compatibility shim: external .cs3 plugins compiled against the original
+ * CloudStream3 expect [AccountManager] at
+ * [com.lagradost.cloudstream3.syncproviders.AccountManager].
+ *
+ * This class provides the exact bytecode shape (abstract class + companion
+ * object with the same constant names and accessor methods) while delegating
+ * to the real PulseStream AccountManager.
+ */
 abstract class AccountManager {
+
     companion object {
-        const val NONE_ID: Int = -1
-        val malApi = MALApi()
-        val kitsuApi = KitsuApi()
-        val aniListApi = AniListApi()
-        val simklApi = SimklApi()
-        val localListApi = LocalList()
+        const val NONE_ID: Int = RealAccountManager.NONE_ID
 
-        val openSubtitlesApi = OpenSubtitlesApi()
-        val addic7ed = Addic7ed()
-        val subDlApi = SubDlApi()
-        val subSourceApi = SubSourceApi()
-        val animeSkipApi = AnimeSkipAuth()
+        const val ACCOUNT_TOKEN: String = RealAccountManager.ACCOUNT_TOKEN
+        const val ACCOUNT_IDS: String = RealAccountManager.ACCOUNT_IDS
 
-        var cachedAccounts: MutableMap<String, Array<AuthData>>
-        var cachedAccountIds: MutableMap<String, Int>
+        const val APP_STRING: String = RealAccountManager.APP_STRING
+        const val APP_STRING_REPO: String = RealAccountManager.APP_STRING_REPO
+        const val APP_STRING_PLAYER: String = RealAccountManager.APP_STRING_PLAYER
+        const val APP_STRING_SEARCH: String = RealAccountManager.APP_STRING_SEARCH
+        const val APP_STRING_RESUME_WATCHING: String = RealAccountManager.APP_STRING_RESUME_WATCHING
+        const val APP_STRING_SHARE: String = RealAccountManager.APP_STRING_SHARE
 
-        const val ACCOUNT_TOKEN = "auth_tokens"
-        const val ACCOUNT_IDS = "auth_ids"
+        val malApi get() = RealAccountManager.malApi
+        val kitsuApi get() = RealAccountManager.kitsuApi
+        val aniListApi get() = RealAccountManager.aniListApi
+        val simklApi get() = RealAccountManager.simklApi
+        val localListApi get() = RealAccountManager.localListApi
+        val openSubtitlesApi get() = RealAccountManager.openSubtitlesApi
+        val addic7ed get() = RealAccountManager.addic7ed
+        val subDlApi get() = RealAccountManager.subDlApi
+        val subSourceApi get() = RealAccountManager.subSourceApi
+        val animeSkipApi get() = RealAccountManager.animeSkipApi
 
-        fun accounts(prefix: String): Array<AuthData> {
-            require(prefix != "NONE")
-            return getKey<Array<AuthData>>(
-                ACCOUNT_TOKEN,
-                "${prefix}/${DataStoreHelper.currentAccount}"
-            ) ?: arrayOf()
-        }
+        val allApis get() = RealAccountManager.allApis
+        val syncApis get() = RealAccountManager.syncApis
+        val subtitleProviders get() = RealAccountManager.subtitleProviders
 
-        fun updateAccounts(prefix: String, array: Array<AuthData>) {
-            require(prefix != "NONE")
-            setKey(ACCOUNT_TOKEN, "${prefix}/${DataStoreHelper.currentAccount}", array)
-            synchronized(cachedAccounts) {
-                cachedAccounts[prefix] = array
-            }
-        }
+        val cachedAccounts: MutableMap<String, Array<AuthData>>
+            get() = RealAccountManager.cachedAccounts
+        val cachedAccountIds: MutableMap<String, Int>
+            get() = RealAccountManager.cachedAccountIds
 
-        fun updateAccountsId(prefix: String, id: Int) {
-            require(prefix != "NONE")
-            setKey(ACCOUNT_IDS, "${prefix}/${DataStoreHelper.currentAccount}", id)
-            synchronized(cachedAccountIds) {
-                cachedAccountIds[prefix] = id
-            }
-        }
+        fun accounts(prefix: String): Array<AuthData> = RealAccountManager.accounts(prefix)
+        fun updateAccounts(prefix: String, array: Array<AuthData>) =
+            RealAccountManager.updateAccounts(prefix, array)
+        fun updateAccountsId(prefix: String, id: Int) =
+            RealAccountManager.updateAccountsId(prefix, id)
+        fun updateAccountIds() = RealAccountManager.updateAccountIds()
+        fun initMainAPI() = RealAccountManager.initMainAPI()
 
-        val allApis = arrayOf(
-            SyncRepo(malApi),
-            SyncRepo(kitsuApi),
-            SyncRepo(aniListApi),
-            SyncRepo(simklApi),
-            SyncRepo(localListApi),
-            SubtitleRepo(openSubtitlesApi),
-            SubtitleRepo(addic7ed),
-            SubtitleRepo(subDlApi),
-            PlainAuthRepo(animeSkipApi),
-            SubtitleRepo(subSourceApi)
-        )
-
-        fun updateAccountIds() {
-            val ids = mutableMapOf<String, Int>()
-            for (api in allApis) {
-                ids.put(
-                    api.idPrefix,
-                    getKey<Int>(
-                        ACCOUNT_IDS,
-                        "${api.idPrefix}/${DataStoreHelper.currentAccount}",
-                        NONE_ID
-                    ) ?: NONE_ID
-                )
-            }
-            synchronized(cachedAccountIds) {
-                cachedAccountIds = ids
-            }
-        }
-
-        init {
-            val data = mutableMapOf<String, Array<AuthData>>()
-            val ids = mutableMapOf<String, Int>()
-            for (api in allApis) {
-                data.put(api.idPrefix, accounts(api.idPrefix))
-                ids.put(
-                    api.idPrefix,
-                    getKey<Int>(
-                        ACCOUNT_IDS,
-                        "${api.idPrefix}/${DataStoreHelper.currentAccount}",
-                        NONE_ID
-                    ) ?: NONE_ID
-                )
-            }
-            cachedAccounts = data
-            cachedAccountIds = ids
-        }
-
-        // I do not want to place this in the init block as JVM initialization order is weird, and it may cause exceptions
-        // accessing other classes
-        fun initMainAPI() {
-            LoadResponse.malIdPrefix = malApi.idPrefix
-            LoadResponse.kitsuIdPrefix = kitsuApi.idPrefix
-            LoadResponse.aniListIdPrefix = aniListApi.idPrefix
-            LoadResponse.simklIdPrefix = simklApi.idPrefix
-        }
-
-        val subtitleProviders = arrayOf(
-            SubtitleRepo(openSubtitlesApi),
-            SubtitleRepo(addic7ed),
-            SubtitleRepo(subDlApi),
-            SubtitleRepo(subSourceApi)
-        )
-        val syncApis = arrayOf(
-            SyncRepo(malApi),
-            SyncRepo(kitsuApi),
-            SyncRepo(aniListApi),
-            SyncRepo(simklApi),
-            SyncRepo(localListApi)
-        )
-
-        const val APP_STRING = "cloudstreamapp"
-        const val APP_STRING_REPO = "cloudstreamrepo"
-        const val APP_STRING_PLAYER = "cloudstreamplayer"
-
-        // Instantly start the search given a query
-        const val APP_STRING_SEARCH = "cloudstreamsearch"
-
-        // Instantly resume watching a show
-        const val APP_STRING_RESUME_WATCHING = "cloudstreamcontinuewatching"
-
-        const val APP_STRING_SHARE = "csshare"
-
-        fun secondsToReadable(seconds: Int, completedValue: String): String {
-            var secondsLong = seconds.toLong()
-            val days = TimeUnit.SECONDS
-                .toDays(secondsLong)
-            secondsLong -= TimeUnit.DAYS.toSeconds(days)
-
-            val hours = TimeUnit.SECONDS
-                .toHours(secondsLong)
-            secondsLong -= TimeUnit.HOURS.toSeconds(hours)
-
-            val minutes = TimeUnit.SECONDS
-                .toMinutes(secondsLong)
-            secondsLong -= TimeUnit.MINUTES.toSeconds(minutes)
-            if (minutes < 0) {
-                return completedValue
-            }
-            //println("$days $hours $minutes")
-            return "${if (days != 0L) "$days" + "d " else ""}${if (hours != 0L) "$hours" + "h " else ""}${minutes}m"
-        }
+        fun secondsToReadable(seconds: Int, completedValue: String): String =
+            RealAccountManager.secondsToReadable(seconds, completedValue)
     }
 }

@@ -120,7 +120,7 @@
     </LinearLayout>
 
 
-    <com.lagradost.cloudstream3.ui.AutofitRecyclerView
+    <com.pulsestream.app.ui.AutofitRecyclerView
         android:id="@+id/search_autofit_results"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

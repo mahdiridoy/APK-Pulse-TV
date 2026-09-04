@@ -1,10 +1,17 @@
-# =====================================================================
+﻿# =====================================================================
 # PulseStream — ProGuard / R8 rules
 # =====================================================================
 
 # Preserve line numbers for crash reports
 -keepattributes SourceFile,LineNumberTable
 -renamesourcefileattribute SourceFile
+
+# =====================================================================
+# SECURITY: keep code intact but strip logs
+# =====================================================================
+# NOTE: -dontobfuscate is required because plugins (.cs3 files) are compiled
+# against host app class names. R8 renaming breaks plugin class resolution.
+-dontobfuscate
 
 # =====================================================================
 # Generated missing rules (R8 auto-detect)
@@ -27,6 +34,19 @@
 -keepclassmembers class * {
     @kotlinx.serialization.SerialName <fields>;
 }
+
+# =====================================================================
+# Keep SitePlugin and PluginWrapper for JSON deserialization (Jackson)
+# =====================================================================
+-keep class com.pulsestream.app.plugins.SitePlugin { *; }
+-keep class com.pulsestream.app.plugins.PluginWrapper { *; }
+-keep class com.pulsestream.app.plugins.Repository { *; }
+-keep class com.pulsestream.app.plugins.RepositoryData { *; }
+-keep class com.pulsestream.app.plugins.PluginData { *; }
+-keep class com.pulsestream.app.plugins.PluginWrapper { *; }
+
+# Keep all plugin-related classes for JSON deserialization
+-keep class com.pulsestream.app.plugins.** { *; }
 
 # =====================================================================
 # Media3 / ExoPlayer (core playback engine)
@@ -82,27 +102,44 @@
 -dontwarn javax.sql.**
 
 # =====================================================================
-# App-specific: Keep data classes that use reflection/serialization
+# Keep ALL CloudStream3 and lagradost classes for extension compatibility
+# Extensions (.cs3 files) are loaded at runtime via PathClassLoader with
+# the host app's classloader as parent. Extensions reference host app
+# classes by their ORIGINAL names. If R8 renames/removes any class that
+# an extension references, the extension fails with NoClassDefFoundError
+# and its providers never register (-> "Provider test 0/0").
+#
+# The safest approach is to keep the ENTIRE packages so no class used by
+# any extension is ever renamed or stripped.
 # =====================================================================
--keep class com.lagradost.cloudstream3.ui.livetv.LiveTvChannel { *; }
--keep class com.lagradost.cloudstream3.ui.watchtogether.WatchTogetherManager$RoomInfo { *; }
--keep class com.lagradost.cloudstream3.ui.watchtogether.WatchTogetherManager$RoomUser { *; }
--keep class com.lagradost.cloudstream3.ui.watchtogether.WatchTogetherManager$ContentInfo { *; }
--keep class com.lagradost.cloudstream3.ui.watchtogether.WatchTogetherManager$NavigateInfo { *; }
--keep class com.lagradost.cloudstream3.ui.watchtogether.WatchTogetherManager$ChatMessage { *; }
-
-# Keep the main API classes (search/parsing uses reflection)
--keep class com.lagradost.cloudstream3.MainAPI** { *; }
--keep class com.lagradost.cloudstream3.apis.** { *; }
+-keep class com.pulsestream.app.** { *; }
+-keep class com.lagradost.** { *; }
 
 # Keep FileProvider (needed for APK install via FileProvider)
 -keep class androidx.core.content.FileProvider { *; }
 
 # =====================================================================
-# Remove logging in release
+# Firebase / Google Play Services
+# =====================================================================
+-keep class com.google.firebase.** { *; }
+-dontwarn com.google.firebase.**
+-keep class com.google.android.gms.** { *; }
+-dontwarn com.google.android.gms.**
+
+# =====================================================================
+# Remove logging in release (anti-debug: prevents log-based analysis)
 # =====================================================================
 -assumenosideeffects class android.util.Log {
     public static int v(...);
     public static int d(...);
     public static int i(...);
+}
+
+# =====================================================================
+# SECURITY: Obfuscate the security class internals
+# =====================================================================
+-keep class com.pulsestream.app.security.AppSecurity { *; }
+-keepclassmembers class com.pulsestream.app.security.** {
+    <fields>;
+    <methods>;
 }

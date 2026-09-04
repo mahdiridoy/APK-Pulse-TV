@@ -1,4 +1,4 @@
-// ! Bu araç @keyiflerolsun tarafından | @KekikAkademi için yazılmıştır.
+// ! Bu ara� @keyiflerolsun tarafindan | @KekikAkademi i�in yazilmistir.
 
 package com.lagradost.cloudstream3.extractors
 

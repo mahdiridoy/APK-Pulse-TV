@@ -26,7 +26,7 @@
 
         </com.google.android.material.appbar.MaterialToolbar>
 
-        <com.lagradost.cloudstream3.ui.settings.testing.TestView
+        <com.pulsestream.app.ui.settings.testing.TestView
             android:id="@+id/provider_test"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

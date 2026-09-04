@@ -81,7 +81,7 @@ object AesHelper {
             while (generatedLength < targetKeySize) {
                 val hashFn = md5Hasher.createHashFunction()
                 if (generatedLength > 0) {
-                    // update(source, startIndex, endIndex) â€” endIndex is exclusive
+                    // update(source, startIndex, endIndex) — endIndex is exclusive
                     hashFn.update(generatedData, generatedLength - digestLength, generatedLength)
                 }
                 hashFn.update(password)

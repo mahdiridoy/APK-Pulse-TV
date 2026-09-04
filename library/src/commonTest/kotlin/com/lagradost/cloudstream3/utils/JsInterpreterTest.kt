@@ -33,7 +33,7 @@ class JsInterpreterTest {
     private suspend fun JsContext.str(code: String): String = jsValueToString(eval(code))
 
     private fun assertApprox(expected: Double, actual: Double, tol: Double = 1e-9) {
-        assertTrue(abs(actual - expected) <= tol, "Expected $expected Â± $tol but was $actual")
+        assertTrue(abs(actual - expected) <= tol, "Expected $expected ± $tol but was $actual")
     }
 
     @Test
