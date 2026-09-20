@@ -122,4 +122,8 @@
     <color name="colorTestFail">#ea596e</color>
     <color name="colorTestWarning">#FF9800</color>
     <color name="playIconBackground">#B3000000</color>
+
+    <!-- Live TV Server Selection -->
+    <color name="liveTvServerSelected">#00C853</color>
+    <color name="liveTvServerUnselected">#00000000</color>
 </resources>

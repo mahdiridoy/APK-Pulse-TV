@@ -1,10 +1,12 @@
 package com.pulsestream.app.ui.livetv
 
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
+import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -99,17 +101,33 @@ class LiveTvFragment : BaseFragment<FragmentLiveTvBinding>(
         val server2Button = binding.liveTvServer2Button
 
         fun updateButtonStates(selectedServer: LiveTvRepository.Server) {
+            val greenColor = ContextCompat.getColor(requireContext(), R.color.liveTvServerSelected)
+            val transparentColor = ContextCompat.getColor(requireContext(), R.color.liveTvServerUnselected)
+            val whiteColor = ContextCompat.getColor(requireContext(), R.color.white)
+            
             when (selectedServer) {
                 LiveTvRepository.Server.SERVER_1 -> {
                     server1Button.isSelected = true
                     server2Button.isSelected = false
+                    // Server 1: Green background, white text
+                    server1Button.backgroundTintList = ColorStateList.valueOf(greenColor)
+                    server1Button.setTextColor(whiteColor)
                     server1Button.strokeWidth = 0
+                    // Server 2: Transparent background, white text, white stroke
+                    server2Button.backgroundTintList = ColorStateList.valueOf(transparentColor)
+                    server2Button.setTextColor(whiteColor)
                     server2Button.strokeWidth = 2
                 }
                 LiveTvRepository.Server.SERVER_2 -> {
                     server1Button.isSelected = false
                     server2Button.isSelected = true
+                    // Server 1: Transparent background, white text, white stroke
+                    server1Button.backgroundTintList = ColorStateList.valueOf(transparentColor)
+                    server1Button.setTextColor(whiteColor)
                     server1Button.strokeWidth = 2
+                    // Server 2: Green background, white text
+                    server2Button.backgroundTintList = ColorStateList.valueOf(greenColor)
+                    server2Button.setTextColor(whiteColor)
                     server2Button.strokeWidth = 0
                 }
             }
